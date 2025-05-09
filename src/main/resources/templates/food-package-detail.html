@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${foodPackage.name} + ' - Protein Food Delivery'">Package Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">Protein Food Delivery</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/food-packages">Meal Packages</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            <li th:each="category : ${relatedPackages}">
+                                <a class="dropdown-item" th:href="@{/food-packages(category=${category.category})}" th:text="${category.category}"></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link" href="/orders">My Orders</a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link" href="/progress-tracking">Progress Tracking</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link" href="/cart">
+                            <i data-feather="shopping-cart"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link" href="/profile">
+                            <i data-feather="user"></i> Profile
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser != null}">
+                        <a class="nav-link" href="/logout">
+                            <i data-feather="log-out"></i> Logout
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser == null}">
+                        <a class="nav-link" href="/login">
+                            <i data-feather="log-in"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${session.currentUser == null}">
+                        <a class="nav-link" href="/register">
+                            <i data-feather="user-plus"></i> Register
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alert for added to cart -->
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${param.added}">
+        <div class="container">
+            <strong>Success!</strong> The meal package has been added to your cart.
+            <a href="/cart" class="alert-link">View Cart</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header bg-light py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0" th:text="${foodPackage.name}">Package Name</h1>
+                </div>
+                <div class="col-md-6">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-md-end mb-0">
+                            <li class="breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="breadcrumb-item"><a href="/food-packages">Meal Packages</a></li>
+                            <li class="breadcrumb-item"><a th:href="@{/food-packages(category=${foodPackage.category})}" th:text="${foodPackage.category}">Category</a></li>
+                            <li class="breadcrumb-item active" aria-current="page" th:text="${foodPackage.name}">Package Name</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Package Details Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Package Image -->
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="card border-0 shadow-sm">
+                        <img th:src="${foodPackage.imageUrl}" alt="Food Package Image" class="card-img-top img-fluid">
+                        <div class="card-body">
+                            <div class="nutrition-info mb-0">
+                                <h5 class="mb-3">Nutrition Facts</h5>
+                                <div class="row text-center">
+                                    <div class="col-3">
+                                        <div class="nutrition-card p-3 bg-light rounded">
+                                            <h6>Calories</h6>
+                                            <span class="h4" th:text="${foodPackage.calories}">2000</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="nutrition-card p-3 bg-light rounded">
+                                            <h6>Protein</h6>
+                                            <span class="h4" th:text="${foodPackage.protein} + 'g'">150g</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="nutrition-card p-3 bg-light rounded">
+                                            <h6>Carbs</h6>
+                                            <span class="h4" th:text="${foodPackage.carbs} + 'g'">200g</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="nutrition-card p-3 bg-light rounded">
+                                            <h6>Fats</h6>
+                                            <span class="h4" th:text="${foodPackage.fats} + 'g'">70g</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Package Details -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h3 class="mb-3" th:text="${foodPackage.name}">Package Name</h3>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h2 text-primary mb-0" th:text="${'$' + foodPackage.price}">$49.99</span>
+                                <span class="badge bg-primary" th:text="${foodPackage.category}">Category</span>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <p class="lead" th:text="${foodPackage.description}">Description</p>
+                            </div>
+                            
+                            <div class="availability-status mb-4">
+                                <span th:if="${foodPackage.available}" class="text-success">
+                                    <i data-feather="check-circle" class="feather-sm"></i> In Stock
+                                </span>
+                                <span th:unless="${foodPackage.available}" class="text-danger">
+                                    <i data-feather="x-circle" class="feather-sm"></i> Out of Stock
+                                </span>
+                            </div>
+                            
+                            <!-- Add to Cart Form -->
+                            <form th:action="@{/cart/add}" method="post" th:if="${foodPackage.available}">
+                                <input type="hidden" name="foodPackageId" th:value="${foodPackage.id}">
+                                
+                                <div class="d-flex align-items-center mb-4">
+                                    <label for="quantity" class="me-3">Quantity:</label>
+                                    <div class="input-group" style="width: 150px;">
+                                        <button type="button" class="btn btn-outline-secondary" id="quantityDecrement">-</button>
+                                        <input type="number" class="form-control text-center" id="quantity" name="quantity" value="1" min="1" max="10">
+                                        <button type="button" class="btn btn-outline-secondary" id="quantityIncrement">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg" th:if="${session.currentUser != null}">
+                                        <i data-feather="shopping-cart" class="feather-sm"></i> Add to Cart
+                                    </button>
+                                    <a href="/login" class="btn btn-primary btn-lg" th:if="${session.currentUser == null}">
+                                        <i data-feather="log-in" class="feather-sm"></i> Login to Purchase
+                                    </a>
+                                </div>
+                            </form>
+                            
+                            <!-- Out of Stock Notice -->
+                            <div class="alert alert-warning" th:unless="${foodPackage.available}">
+                                <i data-feather="alert-triangle" class="feather-sm"></i> 
+                                This meal package is currently out of stock. Please check back later.
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="product-meta">
+                                <div class="features mb-3">
+                                    <h5>Key Benefits</h5>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i data-feather="check" class="text-success feather-sm"></i> 
+                                            Perfectly balanced macronutrients
+                                        </li>
+                                        <li class="mb-2">
+                                            <i data-feather="check" class="text-success feather-sm"></i> 
+                                            High-quality protein sources
+                                        </li>
+                                        <li class="mb-2">
+                                            <i data-feather="check" class="text-success feather-sm"></i> 
+                                            Fresh ingredients, never frozen
+                                        </li>
+                                        <li class="mb-2">
+                                            <i data-feather="check" class="text-success feather-sm"></i> 
+                                            Prepared by professional chefs
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="delivery-info">
+                                    <h5>Delivery Information</h5>
+                                    <p>Orders placed before 2 PM are delivered the next day. All meals are packed in eco-friendly, insulated containers.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Related Products -->
+            <div class="related-products mt-5">
+                <h3 class="mb-4">Related Meal Packages</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-4" th:each="related : ${relatedPackages}">
+                        <div class="card h-100 shadow-sm">
+                            <img class="card-img-top" th:src="${related.imageUrl}" alt="Related Food Package">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${related.name}">Related Package</h5>
+                                <p class="card-text text-truncate" th:text="${related.description}">Description</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="h5 text-primary mb-0" th:text="${'$' + related.price}">$49.99</span>
+                                    <a th:href="@{/food-packages/{id}(id=${related.id})}" class="btn btn-outline-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="mb-3">Protein Food Delivery</h5>
+                    <p>Premium quality, macro-balanced meals delivered to your door.</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-white">Home</a></li>
+                        <li><a href="/food-packages" class="text-white">Meal Packages</a></li>
+                        <li><a href="/orders" class="text-white" th:if="${session.currentUser != null}">My Orders</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Categories</h5>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/food-packages(category=${foodPackage.category})}" class="text-white" th:text="${foodPackage.category}">Category</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="mb-3">Contact</h5>
+                    <ul class="list-unstyled">
+                        <li><i data-feather="mail" class="feather-sm me-2"></i> info@proteinfood.com</li>
+                        <li><i data-feather="phone" class="feather-sm me-2"></i> (123) 456-7890</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2023 Protein Food Delivery. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        // Quantity increment/decrement
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInput = document.getElementById('quantity');
+            const incrementBtn = document.getElementById('quantityIncrement');
+            const decrementBtn = document.getElementById('quantityDecrement');
+            
+            incrementBtn.addEventListener('click', function() {
+                let currentValue = parseInt(quantityInput.value);
+                if (currentValue < 10) {
+                    quantityInput.value = currentValue + 1;
+                }
+            });
+            
+            decrementBtn.addEventListener('click', function() {
+                let currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                }
+            });
+            
+            // Validate input changes
+            quantityInput.addEventListener('change', function() {
+                let value = parseInt(this.value);
+                if (isNaN(value) || value < 1) {
+                    this.value = 1;
+                } else if (value > 10) {
+                    this.value = 10;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

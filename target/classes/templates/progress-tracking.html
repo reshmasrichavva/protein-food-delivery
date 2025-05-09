@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Tracking - Protein Food Delivery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">Protein Food Delivery</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/food-packages">Meal Packages</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/orders">My Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/progress-tracking">Progress Tracking</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart">
+                            <i data-feather="shopping-cart"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">
+                            <i data-feather="user"></i> Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i data-feather="log-out"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alert for tracking saved -->
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${param.success}">
+        <div class="container">
+            <strong>Success!</strong> Your progress data has been saved.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header bg-light py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0">Progress Tracking</h1>
+                </div>
+                <div class="col-md-6">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-md-end mb-0">
+                            <li class="breadcrumb-item"><a href="/">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Progress Tracking</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Progress Tracking Content -->
+    <section class="py-5">
+        <div class="container">
+            <!-- Error Alert -->
+            <div class="alert alert-danger alert-dismissible fade show" th:if="${error}" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <div class="row">
+                <!-- Progress Charts -->
+                <div class="col-lg-8 mb-4 mb-lg-0">
+                    <!-- Empty State -->
+                    <div class="card border-0 shadow-sm h-100" th:if="${trackings.isEmpty()}">
+                        <div class="card-body text-center d-flex flex-column justify-content-center align-items-center py-5">
+                            <div class="empty-state">
+                                <i data-feather="activity" style="width: 64px; height: 64px;"></i>
+                                <h3 class="mt-3">No Progress Data Yet</h3>
+                                <p class="text-muted">Start tracking your fitness journey by adding your first progress entry.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts -->
+                    <div class="card border-0 shadow-sm mb-4" th:if="${!trackings.isEmpty()}">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0">Weight and Body Composition</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="weightChart" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm" th:if="${!trackings.isEmpty()}">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0">Nutrition Intake</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="nutritionChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add New Progress Entry -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0">Add Progress Entry</h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/progress-tracking}" method="post" th:object="${newTracking}">
+                                <div class="mb-3">
+                                    <label for="date" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="date" th:field="*{date}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="weight" class="form-label">Weight (kg)</label>
+                                    <input type="number" step="0.1" class="form-control" id="weight" th:field="*{weight}" placeholder="e.g. 75.5" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="bodyFatPercentage" class="form-label">Body Fat (%)</label>
+                                    <input type="number" step="0.1" class="form-control" id="bodyFatPercentage" th:field="*{bodyFatPercentage}" placeholder="e.g. 15.0">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="musclePercentage" class="form-label">Muscle Mass (%)</label>
+                                    <input type="number" step="0.1" class="form-control" id="musclePercentage" th:field="*{musclePercentage}" placeholder="e.g. 42.5">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="caloriesConsumed" class="form-label">Calories Consumed</label>
+                                    <input type="number" class="form-control" id="caloriesConsumed" th:field="*{caloriesConsumed}" placeholder="e.g. 2500">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="proteinConsumed" class="form-label">Protein Consumed (g)</label>
+                                    <input type="number" class="form-control" id="proteinConsumed" th:field="*{proteinConsumed}" placeholder="e.g. 150">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" th:field="*{notes}" rows="3" placeholder="Any observations or notes about your progress"></textarea>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i data-feather="save" class="feather-sm"></i> Save Progress
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress History Table -->
+            <div class="card border-0 shadow-sm mt-4" th:if="${!trackings.isEmpty()}">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Progress History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Weight (kg)</th>
+                                    <th>Body Fat (%)</th>
+                                    <th>Muscle Mass (%)</th>
+                                    <th>Calories</th>
+                                    <th>Protein (g)</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="tracking : ${trackings}">
+                                    <td th:text="${#temporals.format(tracking.date, 'MMM dd, yyyy')}">Jan 01, 2023</td>
+                                    <td th:text="${tracking.weight}">75.5</td>
+                                    <td th:text="${tracking.bodyFatPercentage}">15.0</td>
+                                    <td th:text="${tracking.musclePercentage}">42.5</td>
+                                    <td th:text="${tracking.caloriesConsumed}">2500</td>
+                                    <td th:text="${tracking.proteinConsumed}">150</td>
+                                    <td th:text="${tracking.notes != null && !tracking.notes.isEmpty() ? tracking.notes : '-'}">Notes</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="mb-3">Protein Food Delivery</h5>
+                    <p>Premium quality, macro-balanced meals delivered to your door.</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-white">Home</a></li>
+                        <li><a href="/food-packages" class="text-white">Meal Packages</a></li>
+                        <li><a href="/orders" class="text-white">My Orders</a></li>
+                        <li><a href="/progress-tracking" class="text-white">Progress Tracking</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Customer Service</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Contact Us</a></li>
+                        <li><a href="#" class="text-white">FAQs</a></li>
+                        <li><a href="#" class="text-white">Shipping Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                    <h5 class="mb-3">Contact</h5>
+                    <ul class="list-unstyled">
+                        <li><i data-feather="mail" class="feather-sm me-2"></i> info@proteinfood.com</li>
+                        <li><i data-feather="phone" class="feather-sm me-2"></i> (123) 456-7890</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2023 Protein Food Delivery. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    
+    <script th:if="${!trackings.isEmpty()}">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prepare data for charts
+            const dates = /*[[${trackings.![date]}]]*/ [];
+            const weights = /*[[${trackings.![weight]}]]*/ [];
+            const bodyFat = /*[[${trackings.![bodyFatPercentage]}]]*/ [];
+            const muscle = /*[[${trackings.![musclePercentage]}]]*/ [];
+            const calories = /*[[${trackings.![caloriesConsumed]}]]*/ [];
+            const protein = /*[[${trackings.![proteinConsumed]}]]*/ [];
+            
+            // Format dates for display
+            const formattedDates = dates.map(date => {
+                const dateObj = new Date(date);
+                return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            
+            // Weight and Body Composition Chart
+            const weightChartCtx = document.getElementById('weightChart').getContext('2d');
+            new Chart(weightChartCtx, {
+                type: 'line',
+                data: {
+                    labels: formattedDates,
+                    datasets: [
+                        {
+                            label: 'Weight (kg)',
+                            data: weights,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Body Fat (%)',
+                            data: bodyFat,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Muscle Mass (%)',
+                            data: muscle,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Nutrition Chart
+            const nutritionChartCtx = document.getElementById('nutritionChart').getContext('2d');
+            new Chart(nutritionChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: formattedDates,
+                    datasets: [
+                        {
+                            label: 'Calories Consumed',
+                            data: calories,
+                            backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Protein Consumed (g)',
+                            data: protein,
+                            backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
